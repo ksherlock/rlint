@@ -6,7 +6,7 @@
 
 #include <gsos.h>
 #include <resources.h>
-
+#include <memory.h>
 
 #include "rlint.h"
 
@@ -108,16 +108,29 @@ void check_rStringList(Handle h){
 	unsigned i;
 	for (i = 0; i < ptr->count; ++i) {
 		Ref ref = ptr->strings[i];
-		if (ref) check(rPString, ref, check_rPString);
+		if (ref) check(rPString, ref);
 	}
 
 }
 
 
-void check(ResType type, ResID id, void (*callback)(Handle)) {
+void check(ResType type, ResID id) {
 
 	Handle h;
+	void (*callback)(Handle);
 
+
+	switch(type) {
+		case rMenu: callback = check_rMenu; break;
+		case rMenuItem: callback = check_rMenuItem; break;
+		case rMenuBar: callback = check_rMenuBar; break;
+		case rItemStruct: callback = check_rItemStruct; break;
+		case rControlList: callback = check_rControlList; break;
+		case rControlTemplate: callback = check_rControlTemplate; break;
+		case rWindParam1: callback = check_rWindParam1; break;
+		case rStringList: callback = check_rStringList; break;
+		default: callback = 0;
+	}
 
 	history[level].type = type;
 	history[level].id = id;
@@ -177,7 +190,7 @@ void one_file(const char *name) {
 	rfd = OpenResourceFile(0x8000 | readEnable, NULL, (Pointer)gname);
 	if (_toolErr) {
 		++error_count;
-		fprintf(stderr, "%s: OpenResourceFile: $%04x\n", name);
+		fprintf(stderr, "%s: OpenResourceFile: $%04x\n", name, _toolErr);
 		free(gname);
 		return;
 	}
@@ -186,7 +199,6 @@ void one_file(const char *name) {
 
 	/* now iterate through all resource types... */
 	for (ti = 1; ; ++ti) {
-		void (*callback)(Handle) = 0;
 		ResType type = GetIndType(ti);
 		if (_toolErr == resIndexRange) break;
 		if (_toolErr) {
@@ -195,15 +207,17 @@ void one_file(const char *name) {
 		}
 
 		switch(type) {
-			case rMenu: callback = check_rMenu; break;
-			case rMenuItem: callback = check_rMenuItem; break;
-			case rMenuBar: callback = check_rMenuBar; break;
-			case rItemStruct: callback = check_rItemStruct; break;
-			case rControlList: callback = check_rControlList; break;
-			case rControlTemplate: callback = check_rControlTemplate; break;
-			case rWindParam1: callback = check_rWindParam1; break;
-			case rStringList: callback = check_rStringList; break;
-			default: callback = 0;
+			case rMenu:
+			case rMenuItem:
+			case rMenuBar:
+			case rItemStruct:
+			case rControlList:
+			case rControlTemplate:
+			case rWindParam1:
+			case rStringList:
+				break;
+			default:
+				continue;
 		}
 
 		for (ri = 1; ; ++ri) {
@@ -213,7 +227,7 @@ void one_file(const char *name) {
 				fprintf(stderr, "%s: GetIndResource: $%04x\n", name, _toolErr);
 				continue;
 			}
-			check(type, id, callback);
+			check(type, id);
 		}
 	}
 

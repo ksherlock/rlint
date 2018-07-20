@@ -16,11 +16,11 @@ void check_rMenuItem(Handle h) {
 
 	if (mi->itemFlag & 0x0400) {
 		if (mi->itemFlag & 0x200) {
-			if (ref) check(rItemStruct, ref, check_rItemStruct);
+			if (ref) check(rItemStruct, ref);
 		}
 	}
 	else if (mi->itemFlag & mRefResource) {
-		if (ref) check(rPString, ref, check_rPString);
+		if (ref) check(rPString, ref);
 	}
 }
 
@@ -33,13 +33,13 @@ void check_rMenu(Handle h) {
 	m = *(MenuTemplate **)h;
 	if (m->menuFlag & mRefResource) {
 		ref = m->menuTitleRef;
-		if (ref) check(rPString, ref, check_rPString);
+		if (ref) check(rPString, ref);
 	}
 	if (m->menuFlag & 0x2000) {
 		for (i = 0; ; ++i) {
 			ref = m->itemRefArray[i];
 			if (!ref) break;
-			check(rMenuItem, ref, check_rMenuItem);
+			check(rMenuItem, ref);
 		}
 	}
 }
@@ -55,7 +55,7 @@ void check_rMenuBar(Handle h) {
 		for (i = 0; ; ++i) {
 			Ref ref = mb->menuRefArray[i];
 			if (!ref) break;
-			check(rMenu, ref, check_rMenu);
+			check(rMenu, ref);
 		}
 	}
 }
@@ -69,12 +69,10 @@ void check_rItemStruct(Handle h) {
 	ptr = *(itemStruct **)h;
 	if (ptr->itemFlag2 & mRefResource) {
 		ref = ptr->itemTitleRef;
-		if (ref) check(rPString, ref, check_rPString);
+		if (ref) check(rPString, ref);
 		ref = ptr->itemIconRef;
-		if (ref) check(rIcon, ref, check_rIcon);
+		if (ref) check(rIcon, ref);
 
 	}
 }
-
-
 
