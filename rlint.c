@@ -17,6 +17,7 @@ struct {
 } history[10];
 unsigned level;
 unsigned error_count;
+unsigned flag_v = 0;
 
 
 
@@ -86,8 +87,10 @@ char *ResName(ResType type) {
 void error(const char *msg) {
 	unsigned i;
 	for (i = 0; i < level; ++i) {
-		fprintf(stderr, "%s:%08lx -> ", ResName(history[i].id), history[i].type);
+		if (i > 0) fputs(" > ", stderr);
+		fprintf(stderr, "%s:%08lx", ResName(history[i].type), history[i].id);
 	}
+	fputs("\n  ", stderr);
 	fputs(msg, stderr);
 	fputs("\n", stderr);
 	++error_count;
@@ -119,6 +122,9 @@ void check(ResType type, ResID id) {
 	Handle h;
 	void (*callback)(Handle);
 
+	if (flag_v) {
+		fprintf(stdout," %s:%08lx\n", ResName(type), id);
+	}
 
 	switch(type) {
 		case rMenu: callback = check_rMenu; break;
@@ -138,12 +144,14 @@ void check(ResType type, ResID id) {
 
 	if (id == 0) {
 		error("Invalid resource ID");
+		--level;
 		return;
 	}
 
 	h = LoadResource(type, id);
 	if (_toolErr) {
 		error("Unable to load Resource");
+		--level;
 		return;
 	}
 
@@ -158,7 +166,6 @@ void check(ResType type, ResID id) {
 
 
 
-unsigned flag_v = 0;
 
 void usage(int rv) {
 	fputs("rlint [-v] file [...]\n", stderr);
@@ -185,6 +192,8 @@ void one_file(const char *name) {
 	unsigned ti;
 	unsigned long ri;
 
+
+	if (flag_v) fprintf(stdout, "Checking %s\n", name);
 	gname = c2gs(name);
 
 	rfd = OpenResourceFile(0x8000 | readEnable, NULL, (Pointer)gname);
@@ -242,6 +251,20 @@ int main(int argc, char **argv) {
 
 	int c;
 	unsigned i;
+
+	flag_v = 0;
+	error_count = 0;
+	level = 0;
+
+	for (i = 1; i < argc; ++i) {
+		char *cp = argv[i];
+		if (cp[0] != '-') break;
+		if (cp[1] == '-' && cp[2] == 0) {++i; break; }
+		if (cp[1] == 'v') flag_v = 1;
+		else usage(1);
+	}
+	argv += i;
+	argc -= i;
 /*
 	for((c = getopt(argc, argv, "hv")) != -1) {
 
@@ -257,8 +280,6 @@ int main(int argc, char **argv) {
 	argv += optind;
 	argc -= optind;
 */
-	argv++;
-	argc--;
 	if (argc == 0) usage(0);
 
 

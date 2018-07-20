@@ -10,6 +10,8 @@ void check_rControlTemplate(Handle h);
 void check_rWindParam1(Handle h);
 void check_rStringList(Handle h);
 
+void check_rBundle(Handle h);
+
 void error(const char *msg);
 void check(ResType type, ResID id);
 
