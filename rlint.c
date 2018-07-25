@@ -19,7 +19,39 @@ unsigned level;
 unsigned error_count;
 unsigned flag_v = 0;
 
+struct node {
+	struct node *next;
+	ResType type;
+	ResID id;
+};
 
+struct node *processed_map[256];
+
+
+unsigned processed(ResType type, ResID id) {
+	unsigned hash = 0xaaaa;
+	struct node *e;
+
+	hash ^= type;
+	hash ^= (unsigned)id;
+	hash ^= id >> 16;
+
+	hash ^= hash >> 8;
+	hash &= 0xff;
+
+	e = processed_map[hash];
+	while(e) {
+		if (e->type == type && e->id == id) return 1;
+		e = e->next;
+	}
+
+	e = malloc(sizeof(struct node));
+	e->next = processed_map[hash];
+	e->type = type;
+	e->id = id;
+	processed_map[hash] = e;
+	return 0;
+}
 
 char *ResName(ResType type) {
 	static char buffer[6] = { '$', 'x', 'x', 'x', 'x', 0 };
@@ -125,6 +157,8 @@ void check(ResType type, ResID id) {
 	if (flag_v) {
 		fprintf(stdout," %s:%08lx\n", ResName(type), id);
 	}
+
+	if (processed(type, id)) return;
 
 	switch(type) {
 		case rMenu: callback = check_rMenu; break;
@@ -255,6 +289,8 @@ int main(int argc, char **argv) {
 	flag_v = 0;
 	error_count = 0;
 	level = 0;
+	memset(processed_map, 0, sizeof(processed_map));
+	memset(history, 0, sizeof(history));
 
 	for (i = 1; i < argc; ++i) {
 		char *cp = argv[i];
