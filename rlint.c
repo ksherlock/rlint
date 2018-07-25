@@ -194,7 +194,7 @@ void check(ResType type, ResID id) {
 		callback(h);
 		HUnlock(h);
 	}
-	ReleaseResource(type, id, -1);
+	ReleaseResource(-1, type, id);
 	--level;
 }
 
