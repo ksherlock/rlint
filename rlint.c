@@ -169,6 +169,7 @@ void check(ResType type, ResID id) {
 		case rControlTemplate: callback = check_rControlTemplate; break;
 		case rWindParam1: callback = check_rWindParam1; break;
 		case rStringList: callback = check_rStringList; break;
+		case rBundle: callback = check_rBundle; break;
 		default: callback = 0;
 	}
 
@@ -258,6 +259,7 @@ void one_file(const char *name) {
 			case rControlTemplate:
 			case rWindParam1:
 			case rStringList:
+			case rBundle:
 				break;
 			default:
 				continue;
