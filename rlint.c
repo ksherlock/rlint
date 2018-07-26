@@ -28,6 +28,21 @@ struct node {
 struct node *processed_map[256];
 
 
+void free_processed_map(void) {
+	struct node *e;
+	unsigned i;
+
+	for (i = 0; i < 256; ++i) {
+		e = processed_map[i];
+		while (e) {
+			struct node *next = e->next;
+			free(e);
+			e = next;
+		}
+		processed_map[i] = 0;
+	}
+
+}
 unsigned processed(ResType type, ResID id) {
 	unsigned hash = 0xaaaa;
 	struct node *e;
@@ -280,6 +295,8 @@ void one_file(const char *name) {
 
 	SetResourceFileDepth(depth);
 	CloseResourceFile(rfd);
+
+	free_processed_map();
 	free(gname);
 }
 
