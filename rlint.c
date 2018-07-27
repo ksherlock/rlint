@@ -21,6 +21,7 @@ unsigned flag_v = 0;
 
 struct node {
 	struct node *next;
+	unsigned status;
 	ResType type;
 	ResID id;
 };
@@ -43,7 +44,7 @@ void free_processed_map(void) {
 	}
 
 }
-unsigned processed(ResType type, ResID id) {
+unsigned *processed(ResType type, ResID id) {
 	unsigned hash = 0xaaaa;
 	struct node *e;
 
@@ -56,16 +57,17 @@ unsigned processed(ResType type, ResID id) {
 
 	e = processed_map[hash];
 	while(e) {
-		if (e->type == type && e->id == id) return 1;
+		if (e->type == type && e->id == id) return &e->status;
 		e = e->next;
 	}
 
 	e = malloc(sizeof(struct node));
 	e->next = processed_map[hash];
+	e->status = 0;
 	e->type = type;
 	e->id = id;
 	processed_map[hash] = e;
-	return 0;
+	return &e->status;
 }
 
 char *ResName(ResType type) {
@@ -168,12 +170,34 @@ void check(ResType type, ResID id) {
 
 	Handle h;
 	void (*callback)(Handle);
+	unsigned *status;
 
 	if (flag_v) {
 		fprintf(stdout," %s:%08lx\n", ResName(type), id);
 	}
 
-	if (processed(type, id)) return;
+	history[level].type = type;
+	history[level].id = id;
+	++level;
+
+
+	if (id == 0) {
+		error("Invalid resource ID");
+		--level;
+		return;
+	}
+
+	status = processed(type, id);
+	if (*status == 2) {
+		/* missing */
+		error("Unable to load Resource");
+		--level;
+		return;
+	}
+	if (*status == 1) {
+		--level;
+		return;
+	}
 
 	switch(type) {
 		case rMenu: callback = check_rMenu; break;
@@ -188,22 +212,15 @@ void check(ResType type, ResID id) {
 		default: callback = 0;
 	}
 
-	history[level].type = type;
-	history[level].id = id;
-	++level;
-
-	if (id == 0) {
-		error("Invalid resource ID");
-		--level;
-		return;
-	}
 
 	h = LoadResource(type, id);
 	if (_toolErr) {
+		*status = 2;
 		error("Unable to load Resource");
 		--level;
 		return;
 	}
+	*status = 1;
 
 	if (callback) {
 		HLock(h);
