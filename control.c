@@ -173,16 +173,18 @@ void check_rWindParam1(Handle h) {
 	unsigned desc = ptr->p1InDesc;
 
 	ref = (Ref)ptr->p1Title;
-	if (desc & 0x0200) check(rPString, ref);
+	if (ref && (desc & 0x0200)) check(rPString, ref);
 
 	ref = (Ref)ptr->p1ColorTable;
-	if (desc & 0x0800) check(rWindColor, ref);
+	if (ref && (desc & 0x0800)) check(rWindColor, ref);
 
 	ref = (Ref)ptr->p1ControlList;
-	switch(desc & 0xff) {
-		case singleResource: check(rControlTemplate, ref); break;
-		case resourceToResource: check(rControlList, ref); break;
-		default: break; /* warn about invalid value ? */
+	if (ref) {
+		switch(desc & 0xff) {
+			case singleResource: check(rControlTemplate, ref); break;
+			case resourceToResource: check(rControlList, ref); break;
+			default: break; /* warn about invalid value ? */
+		}
 	}
 
 }
