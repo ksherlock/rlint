@@ -1,6 +1,7 @@
 #include <resources.h>
 #include <control.h>
 #include <window.h>
+#include <textedit.h>
 
 #include "rlint.h"
 
@@ -152,7 +153,7 @@ void check_rControlTemplate(Handle h) {
 
 
 	if (ptr->procRef == editTextControl) {
-		
+		unsigned desc;
 		ref = ((TextEditTemplate *)ptr)->styleRef;
 		if ((moreFlags & 0x03) == titleIsResource)
 			check(rStyleBlock, ref);
@@ -160,6 +161,22 @@ void check_rControlTemplate(Handle h) {
 		ref = ((TextEditTemplate *)ptr)->colorRef;
 		if ((moreFlags & 0x0c) == colorTableIsResource)
 			check(rCtlColorTbl, ref);
+
+
+		ref = ((TextEditTemplate *)ptr)->textRef;
+		desc = ((TextEditTemplate *)ptr)->textDescriptor;
+		if ((desc & 0x18) == teTextIsResource) {
+			switch(desc & 0x07) {
+				case teDataIsPString: check(rPString, ref); break;
+				case teDataIsCString: check(rCString, ref); break;
+				case teDataIsC1Input: check(rC1InputString, ref); break;
+				case teDataIsC1Output: check(rC1OutputString, ref); break;
+				case teDataIsTextBox2: check(rTextForLETextBox2, ref); break;
+				case teDataIsTextBlock: check(rTextBlock, ref); break;
+			}
+		}
+
+
 
 		return;
 	}
