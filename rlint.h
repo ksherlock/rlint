@@ -12,6 +12,9 @@ void check_rStringList(Handle h);
 
 void check_rBundle(Handle h);
 
+void check_rAlertString(Handle h);
+
+
 void error(const char *msg);
 void check(ResType type, ResID id);
 

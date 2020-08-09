@@ -209,6 +209,10 @@ void check(ResType type, ResID id) {
 		case rWindParam1: callback = check_rWindParam1; break;
 		case rStringList: callback = check_rStringList; break;
 		case rBundle: callback = check_rBundle; break;
+		case rAlertString:
+		case rErrorString:
+			callback = check_rAlertString;
+			break;
 		default: callback = 0;
 	}
 
@@ -292,6 +296,8 @@ void one_file(const char *name) {
 			case rWindParam1:
 			case rStringList:
 			case rBundle:
+			case rAlertString:
+			case rErrorString:
 				break;
 			default:
 				continue;
